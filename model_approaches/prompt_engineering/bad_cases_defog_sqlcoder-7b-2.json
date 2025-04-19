@@ -1,0 +1,776 @@
+[
+  {
+    "db_id": "department_management",
+    "question": "How many heads of the departments are older than 56 ?",
+    "gold_query": "SELECT count(*) FROM head WHERE age  >  56",
+    "pred_query": "\nSELECT COUNT(*)\nFROM head h\nJOIN management m ON h.head_id = m.head_id\nWHERE h.age > 56;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        5",
+    "pred_result": " COUNT(*)\n        3"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the name, born state and age of the heads of departments ordered by age.",
+    "gold_query": "SELECT name ,  born_state ,  age FROM head ORDER BY age",
+    "pred_query": "\nSELECT h.name,\n       h.born_state,\n       h.age\nFROM head h\nJOIN management m ON h.head_id = m.head_id\nORDER BY h.age NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "              name  born_state  age\nPádraig Harrington Connecticut 43.0\n      Stewart Cink     Florida 50.0\n       Dudley Hart  California 52.0\n      Jeff Maggert    Delaware 53.0\n        Nick Faldo  California 56.0\n       Tiger Woods     Alabama 67.0\n  Franklin Langham Connecticut 67.0\n     Sergio García  California 68.0\n        K. J. Choi     Alabama 69.0\n     Billy Mayfair  California 69.0",
+    "pred_result": "            name  born_state  age\n     Dudley Hart  California 52.0\n    Jeff Maggert    Delaware 53.0\nFranklin Langham Connecticut 67.0\n   Billy Mayfair  California 69.0\n      K. J. Choi     Alabama 69.0"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the creation year, name and budget of each department.",
+    "gold_query": "SELECT creation ,  name ,  budget_in_billions FROM department",
+    "pred_query": "\nSELECT d.creation,\n       d.name,\n       d.budget_in_billions\nFROM department d\nORDER BY d.creation NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "Creation                          Name  Budget_in_Billions\n    1789                         State                9.96\n    1789                      Treasury               11.10\n    1947                       Defense              439.30\n    1870                       Justice               23.40\n    1849                      Interior               10.70\n    1889                   Agriculture               77.60\n    1903                      Commerce                6.20\n    1913                         Labor               59.70\n    1953     Health and Human Services              543.20\n    1965 Housing and Urban Development               46.20\n    1966                Transportation               58.00\n    1977                        Energy               21.50\n    1979                     Education               62.80\n    1989              Veterans Affairs               73.20\n    2002             Homeland Security               44.60",
+    "pred_result": "Creation                          Name  Budget_in_Billions\n    1789                         State                9.96\n    1789                      Treasury               11.10\n    1849                      Interior               10.70\n    1870                       Justice               23.40\n    1889                   Agriculture               77.60\n    1903                      Commerce                6.20\n    1913                         Labor               59.70\n    1947                       Defense              439.30\n    1953     Health and Human Services              543.20\n    1965 Housing and Urban Development               46.20\n    1966                Transportation               58.00\n    1977                        Energy               21.50\n    1979                     Education               62.80\n    1989              Veterans Affairs               73.20\n    2002             Homeland Security               44.60"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the maximum and minimum budget of the departments?",
+    "gold_query": "SELECT max(budget_in_billions) ,  min(budget_in_billions) FROM department",
+    "pred_query": "\nSELECT MAX(d.budget_in_billions) AS max_budget,\n       MIN(d.budget_in_billions) AS min_budget\nFROM department d;",
+    "error_type": "Mismatch",
+    "gold_result": " max(budget_in_billions)  min(budget_in_billions)\n                   543.2                      6.2",
+    "pred_result": " max_budget  min_budget\n      543.2         6.2"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What is the average number of employees of the departments whose rank is between 10 and 15?",
+    "gold_query": "SELECT avg(num_employees) FROM department WHERE ranking BETWEEN 10 AND 15",
+    "pred_query": "\nSELECT AVG(d.num_employees)\nFROM department d\nWHERE d.ranking BETWEEN 10 AND 15;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(num_employees)\n      105468.166667",
+    "pred_result": " AVG(d.num_employees)\n        105468.166667"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct creation years of the departments managed by a secretary born in state 'Alabama'?",
+    "gold_query": "SELECT DISTINCT T1.creation FROM department AS T1 JOIN management AS T2 ON T1.department_id  =  T2.department_id JOIN head AS T3 ON T2.head_id  =  T3.head_id WHERE T3.born_state  =  'Alabama'",
+    "pred_query": "\nSELECT EXTRACT(YEAR\n               FROM d.creation::DATE) AS creation_year\nFROM department d\nJOIN management m ON d.department_id = m.department_id\nJOIN head h ON m.head_id = h.head_id\nWHERE h.born_state = 'Alabama'\nORDER BY creation_year NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "  Creation\n0     1903",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "department_management",
+    "question": "In which year were most departments established?",
+    "gold_query": "SELECT creation FROM department GROUP BY creation ORDER BY count(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT EXTRACT(YEAR\n               FROM to_date(d.creation, 'YYYY')) AS year_of_creation,\n       COUNT(*) AS number_of_departments\nFROM department d\nGROUP BY year_of_creation\nORDER BY number_of_departments DESC\nLIMIT 1;",
+    "error_type": "ExecutionError",
+    "gold_result": "  Creation\n0     1789",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many acting statuses are there?",
+    "gold_query": "SELECT count(DISTINCT temporary_acting) FROM management",
+    "pred_query": "\nSELECT COUNT(DISTINCT m.temporary_acting) AS num_acting_statuses\nFROM management m;",
+    "error_type": "Mismatch",
+    "gold_result": " count(DISTINCT temporary_acting)\n                                2",
+    "pred_result": " num_acting_statuses\n                   2"
+  },
+  {
+    "db_id": "department_management",
+    "question": "How many departments are led by heads who are not mentioned?",
+    "gold_query": "SELECT count(*) FROM department WHERE department_id NOT IN (SELECT department_id FROM management);",
+    "pred_query": "\nSELECT COUNT(DISTINCT d.department_id) AS num_departments\nFROM department d\nLEFT JOIN management m ON d.department_id = m.department_id\nAND m.head_id IS NULL;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n       11",
+    "pred_result": " num_departments\n              15"
+  },
+  {
+    "db_id": "department_management",
+    "question": "What are the distinct ages of the heads who are acting?",
+    "gold_query": "SELECT DISTINCT T1.age FROM management AS T2 JOIN head AS T1 ON T1.head_id  =  T2.head_id WHERE T2.temporary_acting  =  'Yes'",
+    "pred_query": "\nSELECT DISTINCT h.age\nFROM head h\nJOIN management m ON h.head_ID = m.head_ID;",
+    "error_type": "Mismatch",
+    "gold_result": " age\n53.0\n52.0\n69.0",
+    "pred_result": " age\n53.0\n69.0\n67.0\n52.0"
+  },
+  {
+    "db_id": "department_management",
+    "question": "List the states where both the secretary of 'Treasury' department and the secretary of 'Homeland Security' were born.",
+    "gold_query": "SELECT T3.born_state FROM department AS T1 JOIN management AS T2 ON T1.department_id  =  T2.department_id JOIN head AS T3 ON T2.head_id  =  T3.head_id WHERE T1.name  =  'Treasury' INTERSECT SELECT T3.born_state FROM department AS T1 JOIN management AS T2 ON T1.department_id  =  T2.department_id JOIN head AS T3 ON T2.head_id  =  T3.head_id WHERE T1.name  =  'Homeland Security'",
+    "pred_query": "\nSELECT h1.born_state AS state\nFROM head h1\nJOIN management m1 ON h1.head_ID = m1.head_ID\nJOIN department d1 ON m1.department_ID = d1.Department_ID\nJOIN head h2 ON h1.head_ID = h2.head_ID\nJOIN management m2 ON h2.head_ID = m2.head_ID\nJOIN department d2 ON m2.department_ID = d2.Department_ID\nWHERE d1.Name = 'Treasury'\n  AND d2.Name = 'Homeland Security'",
+    "error_type": "Mismatch",
+    "gold_result": "born_state\nCalifornia",
+    "pred_result": "Empty DataFrame\nColumns: [state]\nIndex: []"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which department has more than 1 head at a time? List the id, name and the number of heads.",
+    "gold_query": "SELECT T1.department_id ,  T1.name ,  count(*) FROM management AS T2 JOIN department AS T1 ON T1.department_id  =  T2.department_id GROUP BY T1.department_id HAVING count(*)  >  1",
+    "pred_query": "\nSELECT d.department_id,\n       d.name,\n       COUNT(m.head_id) AS num_heads\nFROM department d\nJOIN management m ON d.department_id = m.department_id\nGROUP BY d.department_id,\n         d.name\nHAVING COUNT(m.head_id) > 1\nORDER BY num_heads DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": " Department_ID     Name  count(*)\n             2 Treasury         2",
+    "pred_result": " Department_ID     Name  num_heads\n             2 Treasury          2"
+  },
+  {
+    "db_id": "department_management",
+    "question": "Which head's name has the substring 'Ha'? List the id and name.",
+    "gold_query": "SELECT head_id ,  name FROM head WHERE name LIKE '%Ha%'",
+    "pred_query": "\nSELECT h.head_id,\n       h.name\nFROM head h\nWHERE h.name ilike '%Ha%'\nORDER BY h.name NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "   head_ID                name\n0        4         Dudley Hart\n1        9  Pádraig Harrington\n2       10    Franklin Langham",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many farms are there?",
+    "gold_query": "SELECT count(*) FROM farm",
+    "pred_query": "\nSELECT COUNT(DISTINCT f.farm_id) AS number_of_farms\nFROM farm f;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        8",
+    "pred_result": " number_of_farms\n               8"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of farms.",
+    "gold_query": "SELECT count(*) FROM farm",
+    "pred_query": "\nSELECT COUNT(DISTINCT f.farm_id) AS number_of_farms\nFROM farm f;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        8",
+    "pred_result": " number_of_farms\n               8"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the total horses record for each farm, sorted ascending?",
+    "gold_query": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+    "pred_query": "\nSELECT f.farm_id,\n       f.total_horses\nFROM farm f\nORDER BY f.total_horses ASC;",
+    "error_type": "Mismatch",
+    "gold_result": " Total_Horses\n       2546.9\n       2604.8\n       3658.9\n       4781.3\n       5056.5\n       5308.2\n       5486.9\n       5607.5",
+    "pred_result": " Farm_ID  Total_Horses\n       8        2546.9\n       7        2604.8\n       6        3658.9\n       5        4781.3\n       1        5056.5\n       4        5308.2\n       2        5486.9\n       3        5607.5"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the hosts of competitions whose theme is not \"Aliens\"?",
+    "gold_query": "SELECT Hosts FROM farm_competition WHERE Theme !=  'Aliens'",
+    "pred_query": "\nSELECT fc.Hosts\nFROM farm_competition fc\nWHERE fc.Theme not ilike '%Aliens%'\nORDER BY fc.Hosts NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "                                  Hosts\n0  Miley Cyrus Jared Leto and Karen Mok\n1         Leehom Wang and Kelly Rowland\n2                           Alicia Keys\n3        Vanness Wu and Michelle Branch\n4                   Shaggy and Coco Lee",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the hosts of competitions for which the theme is not Aliens?",
+    "gold_query": "SELECT Hosts FROM farm_competition WHERE Theme !=  'Aliens'",
+    "pred_query": "\nSELECT fc.Hosts\nFROM farm_competition fc\nWHERE fc.Theme not ilike '%Aliens%'\nORDER BY fc.Hosts NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "                                  Hosts\n0  Miley Cyrus Jared Leto and Karen Mok\n1         Leehom Wang and Kelly Rowland\n2                           Alicia Keys\n3        Vanness Wu and Michelle Branch\n4                   Shaggy and Coco Lee",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the themes of farm competitions sorted by year in ascending order?",
+    "gold_query": "SELECT Theme FROM farm_competition ORDER BY YEAR ASC",
+    "pred_query": "\nSELECT fc.year,\n       fc.theme\nFROM farm_competition fc\nORDER BY fc.year ASC;",
+    "error_type": "Mismatch",
+    "gold_result": "              Theme\n             Aliens\n           MTV Cube\n    Valentine's Day\n       MTV Asia Aid\n        Codehunters\nCarnival M is back!",
+    "pred_result": " Year               Theme\n 2002              Aliens\n 2003            MTV Cube\n 2004     Valentine's Day\n 2005        MTV Asia Aid\n 2006         Codehunters\n 2013 Carnival M is back!"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the themes of farm competitions, sorted by year ascending.",
+    "gold_query": "SELECT Theme FROM farm_competition ORDER BY YEAR ASC",
+    "pred_query": "\nSELECT fc.theme,\n       fc.year\nFROM farm_competition fc\nORDER BY fc.year ASC;",
+    "error_type": "Mismatch",
+    "gold_result": "              Theme\n             Aliens\n           MTV Cube\n    Valentine's Day\n       MTV Asia Aid\n        Codehunters\nCarnival M is back!",
+    "pred_result": "              Theme  Year\n             Aliens  2002\n           MTV Cube  2003\n    Valentine's Day  2004\n       MTV Asia Aid  2005\n        Codehunters  2006\nCarnival M is back!  2013"
+  },
+  {
+    "db_id": "farm",
+    "question": "What is the average number of working horses of farms with more than 5000 total number of horses?",
+    "gold_query": "SELECT avg(Working_Horses) FROM farm WHERE Total_Horses  >  5000",
+    "pred_query": "\nSELECT AVG(f.Working_Horses)\nFROM farm f\nWHERE f.Total_Horses > 5000;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(Working_Horses)\n             3977.75",
+    "pred_result": " AVG(f.Working_Horses)\n               3977.75"
+  },
+  {
+    "db_id": "farm",
+    "question": "Give the average number of working horses on farms with more than 5000 total horses.",
+    "gold_query": "SELECT avg(Working_Horses) FROM farm WHERE Total_Horses  >  5000",
+    "pred_query": "\nSELECT AVG(f.Working_Horses)\nFROM farm f\nWHERE f.Total_Horses > 5000;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(Working_Horses)\n             3977.75",
+    "pred_result": " AVG(f.Working_Horses)\n               3977.75"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the maximum and minimum number of cows across all farms.",
+    "gold_query": "SELECT max(Cows) ,  min(Cows) FROM farm",
+    "pred_query": "\nSELECT MIN(f.Cows) AS min_cows,\n       MAX(f.Cows) AS max_cows\nFROM farm f;",
+    "error_type": "Mismatch",
+    "gold_result": " max(Cows)  min(Cows)\n    3987.0     2407.2",
+    "pred_result": " min_cows  max_cows\n   2407.2    3987.0"
+  },
+  {
+    "db_id": "farm",
+    "question": "Return the maximum and minimum number of cows across all farms.",
+    "gold_query": "SELECT max(Cows) ,  min(Cows) FROM farm",
+    "pred_query": "\nSELECT MAX(f.cows) AS max_cows,\n       MIN(f.cows) AS min_cows\nFROM farm f;",
+    "error_type": "Mismatch",
+    "gold_result": " max(Cows)  min(Cows)\n    3987.0     2407.2",
+    "pred_result": " max_cows  min_cows\n   3987.0    2407.2"
+  },
+  {
+    "db_id": "farm",
+    "question": "How many different statuses do cities have?",
+    "gold_query": "SELECT count(DISTINCT Status) FROM city",
+    "pred_query": "\nSELECT COUNT(DISTINCT c.status)\nFROM city c;",
+    "error_type": "Mismatch",
+    "gold_result": " count(DISTINCT Status)\n                      2",
+    "pred_result": " COUNT(DISTINCT c.status)\n                        2"
+  },
+  {
+    "db_id": "farm",
+    "question": "Count the number of different statuses.",
+    "gold_query": "SELECT count(DISTINCT Status) FROM city",
+    "pred_query": "\nSELECT COUNT(DISTINCT c.status)\nFROM city c;",
+    "error_type": "Mismatch",
+    "gold_result": " count(DISTINCT Status)\n                      2",
+    "pred_result": " COUNT(DISTINCT c.status)\n                        2"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses of cities and the average population of cities with each status.",
+    "gold_query": "SELECT Status ,  avg(Population) FROM city GROUP BY Status",
+    "pred_query": "\nSELECT c.status,\n       AVG(c.population) AS average_population\nFROM city c\nGROUP BY c.status\nORDER BY average_population DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": " Status  avg(Population)\n   Town          5706.00\nVillage          1009.75",
+    "pred_result": " Status  average_population\n   Town             5706.00\nVillage             1009.75"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the statuses and average populations of each city?",
+    "gold_query": "SELECT Status ,  avg(Population) FROM city GROUP BY Status",
+    "pred_query": "\nSELECT c.status,\n       AVG(c.population) AS average_population\nFROM city c\nGROUP BY c.status\nORDER BY average_population DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": " Status  avg(Population)\n   Town          5706.00\nVillage          1009.75",
+    "pred_result": " Status  average_population\n   Town             5706.00\nVillage             1009.75"
+  },
+  {
+    "db_id": "farm",
+    "question": "Please show the different statuses, ordered by the number of cities that have each.",
+    "gold_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) ASC",
+    "pred_query": "\nSELECT c.status,\n       COUNT(c.city_id) AS city_count\nFROM city c\nGROUP BY c.status\nORDER BY city_count DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": " Status\n   Town\nVillage",
+    "pred_result": " Status  city_count\nVillage           4\n   Town           1"
+  },
+  {
+    "db_id": "farm",
+    "question": "List the most common type of Status across cities.",
+    "gold_query": "SELECT Status FROM city GROUP BY Status ORDER BY COUNT(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT c.Status,\n       COUNT(c.Status) AS COUNT\nFROM city c\nGROUP BY c.Status\nORDER BY COUNT DESC\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": " Status\nVillage",
+    "pred_result": " Status  COUNT\nVillage      4"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the status shared by cities with population bigger than 1500 and smaller than 500.",
+    "gold_query": "SELECT Status FROM city WHERE Population  >  1500 INTERSECT SELECT Status FROM city WHERE Population  <  500",
+    "pred_query": "\nSELECT c.status\nFROM city c\nWHERE c.population > 1500\n  AND c.population < 500;",
+    "error_type": "Mismatch",
+    "gold_result": " Status\nVillage",
+    "pred_result": "Empty DataFrame\nColumns: [Status]\nIndex: []"
+  },
+  {
+    "db_id": "farm",
+    "question": "Which statuses correspond to both cities that have a population over 1500 and cities that have a population lower than 500?",
+    "gold_query": "SELECT Status FROM city WHERE Population  >  1500 INTERSECT SELECT Status FROM city WHERE Population  <  500",
+    "pred_query": "\nSELECT c.status\nFROM city c\nWHERE c.population > 1500\n  AND c.population < 500",
+    "error_type": "Mismatch",
+    "gold_result": " Status\nVillage",
+    "pred_result": "Empty DataFrame\nColumns: [Status]\nIndex: []"
+  },
+  {
+    "db_id": "farm",
+    "question": "Find the official names of cities with population bigger than 1500 or smaller than 500.",
+    "gold_query": "SELECT Official_Name FROM city WHERE Population  >  1500 OR Population  <  500",
+    "pred_query": "\nSELECT c.official_name\nFROM city c\nWHERE (c.population > 1500\n       OR c.population < 500)\nORDER BY c.official_name NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "          Official_Name\nGrand Falls/Grand-Sault\n          Perth-Andover\n              Aroostook",
+    "pred_result": "          Official_Name\n              Aroostook\nGrand Falls/Grand-Sault\n          Perth-Andover"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the official names of cities that have population over 1500 or less than 500?",
+    "gold_query": "SELECT Official_Name FROM city WHERE Population  >  1500 OR Population  <  500",
+    "pred_query": "\nSELECT c.official_name\nFROM city c\nWHERE (c.population > 1500\n       OR c.population < 500)\nORDER BY c.official_name NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "          Official_Name\nGrand Falls/Grand-Sault\n          Perth-Andover\n              Aroostook",
+    "pred_result": "          Official_Name\n              Aroostook\nGrand Falls/Grand-Sault\n          Perth-Andover"
+  },
+  {
+    "db_id": "farm",
+    "question": "Show the census ranking of cities whose status are not \"Village\".",
+    "gold_query": "SELECT Census_Ranking FROM city WHERE Status !=  \"Village\"",
+    "pred_query": "\nSELECT c.census_ranking\nFROM city c\nWHERE c.status not ilike '%Village%'\nORDER BY c.census_ranking NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "  Census_Ranking\n0    636 of 5008",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "farm",
+    "question": "What are the census rankings of cities that do not have the status \"Village\"?",
+    "gold_query": "SELECT Census_Ranking FROM city WHERE Status !=  \"Village\"",
+    "pred_query": "\nSELECT c.census_ranking\nFROM city c\nWHERE c.status not ilike '%Village%'\nORDER BY c.census_ranking NULLS LAST;",
+    "error_type": "ExecutionError",
+    "gold_result": "  Census_Ranking\n0    636 of 5008",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "How many aircrafts are there?",
+    "gold_query": "SELECT count(*) FROM aircraft",
+    "pred_query": "\nSELECT COUNT(a.Aircraft_ID) AS number_of_aircrafts\nFROM aircraft a;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        5",
+    "pred_result": " number_of_aircrafts\n                   5"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the number of aircraft?",
+    "gold_query": "SELECT count(*) FROM aircraft",
+    "pred_query": "\nSELECT COUNT(a.Aircraft_ID) AS number_of_aircraft\nFROM aircraft a;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        5",
+    "pred_result": " number_of_aircraft\n                  5"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the average number of international passengers of all airports?",
+    "gold_query": "SELECT avg(International_Passengers) FROM airport",
+    "pred_query": "\nSELECT AVG(a.International_Passengers) AS average_international_passengers\nFROM airport a;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(International_Passengers)\n                    16443156.6",
+    "pred_result": " average_international_passengers\n                       16443156.6"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the average number of international passengers for an airport?",
+    "gold_query": "SELECT avg(International_Passengers) FROM airport",
+    "pred_query": "\nSELECT AVG(a.International_Passengers) AS average_international_passengers\nFROM airport a;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(International_Passengers)\n                    16443156.6",
+    "pred_result": " average_international_passengers\n                       16443156.6"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the number of international and domestic passengers of the airport named London \"Heathrow\"?",
+    "gold_query": "SELECT International_Passengers ,  Domestic_Passengers FROM airport WHERE Airport_Name  =  \"London Heathrow\"",
+    "pred_query": "\nSELECT a.international_passengers,\n       a.domestic_passengers\nFROM airport a\nWHERE a.airport_name ilike '%London%Heathrow%'",
+    "error_type": "ExecutionError",
+    "gold_result": "   International_Passengers  Domestic_Passengers\n0                61344438.0            5562516.0",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the total number of Domestic Passengers of airports that contain the word \"London\".",
+    "gold_query": "SELECT sum(Domestic_Passengers) FROM airport WHERE Airport_Name LIKE \"%London%\"",
+    "pred_query": "\nSELECT SUM(a.Domestic_Passengers) AS total_domestic_passengers\nFROM airport a\nWHERE a.Airport_Name ilike '%London%';",
+    "error_type": "ExecutionError",
+    "gold_result": "   sum(Domestic_Passengers)\n0                12957585.0",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the total number of domestic passengers at all London airports?",
+    "gold_query": "SELECT sum(Domestic_Passengers) FROM airport WHERE Airport_Name LIKE \"%London%\"",
+    "pred_query": "\nSELECT SUM(a.Domestic_Passengers) AS total_domestic_passengers\nFROM airport a\nWHERE a.Airport_Name ilike '%London%'",
+    "error_type": "ExecutionError",
+    "gold_result": "   sum(Domestic_Passengers)\n0                12957585.0",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the maximum and minimum number of transit passengers of all aiports.",
+    "gold_query": "SELECT max(Transit_Passengers) ,  min(Transit_Passengers) FROM airport",
+    "pred_query": "\nSELECT MIN(a.Transit_Passengers) AS Min_Transit_Passengers,\n       MAX(a.Transit_Passengers) AS Max_Transit_Passengers\nFROM airport a;",
+    "error_type": "Mismatch",
+    "gold_result": " max(Transit_Passengers)  min(Transit_Passengers)\n                156246.0                   4395.0",
+    "pred_result": " Min_Transit_Passengers  Max_Transit_Passengers\n                 4395.0                156246.0"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the maximum and mininum number of transit passengers for all airports?",
+    "gold_query": "SELECT max(Transit_Passengers) ,  min(Transit_Passengers) FROM airport",
+    "pred_query": "\nSELECT MAX(a.Transit_Passengers) AS max_transit_passengers,\n       MIN(a.Transit_Passengers) AS min_transit_passengers\nFROM airport a;",
+    "error_type": "Mismatch",
+    "gold_result": " max(Transit_Passengers)  min(Transit_Passengers)\n                156246.0                   4395.0",
+    "pred_result": " max_transit_passengers  min_transit_passengers\n               156246.0                  4395.0"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the names of all pilots 30 years old or young in descending alphabetical order?",
+    "gold_query": "SELECT Name FROM pilot WHERE Age  <=  30 ORDER BY Name DESC",
+    "pred_query": "\nSELECT p.name\nFROM pilot p\nWHERE p.age >= 30\nORDER BY p.name DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "                     Name\n          Winnifred Boyle\n    Prof. Zackery Collins\nMr. Cristian Halvorson II\n           Maxwell Graham\n     Katheryn Gorczany IV\n       Dr. Jade Bradtke V\n           Della Lindgren\n           Baylee Steuber\n            Ayana Spencer",
+    "pred_result": "            Name\n Winnifred Boyle\nEllen Ledner III\n Elisha Hickle V\n   Blaise Muller\n  Baylee Steuber"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "Please show the names of aircrafts associated with airport with name \"London Gatwick\".",
+    "gold_query": "SELECT T1.Aircraft FROM aircraft AS T1 JOIN airport_aircraft AS T2 ON T1.Aircraft_ID  =  T2.Aircraft_ID JOIN airport AS T3 ON T2.Airport_ID  =  T3.Airport_ID WHERE T3.Airport_Name  =  \"London Gatwick\"",
+    "pred_query": "\nSELECT a.aircraft\nFROM aircraft a\nJOIN airport_aircraft aa ON a.aircraft_id = aa.aircraft_id\nJOIN airport ar ON aa.airport_id = ar.airport_id\nWHERE ar.airport_name ilike '%London Gatwick%'",
+    "error_type": "ExecutionError",
+    "gold_result": "        Aircraft\n0  Robinson R-22",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "Please show the names and descriptions of aircrafts associated with airports that have a total number of passengers bigger than 10000000.",
+    "gold_query": "SELECT T1.Aircraft ,  T1.Description FROM aircraft AS T1 JOIN airport_aircraft AS T2 ON T1.Aircraft_ID  =  T2.Aircraft_ID JOIN airport AS T3 ON T2.Airport_ID  =  T3.Airport_ID WHERE T3.Total_Passengers  >  10000000",
+    "pred_query": "\nSELECT a.airport_name,\n       a2.aircraft,\n       a2.description\nFROM airport a\nJOIN airport_aircraft aa ON a.airport_id = aa.airport_id\nJOIN aircraft a2 ON aa.aircraft_id = a2.aircraft_id\nWHERE a.total_passengers > 10000000;",
+    "error_type": "Mismatch",
+    "gold_result": "            Aircraft                   Description\nBell 206B3 JetRanger Turboshaft utility helicopter\n       Robinson R-22      Light utility helicopter",
+    "pred_result": "   Airport_Name             Aircraft                   Description\nLondon Heathrow Bell 206B3 JetRanger Turboshaft utility helicopter\n London Gatwick        Robinson R-22      Light utility helicopter"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the names and descriptions of aircrafts associated with an airport that has more total passengers than 10000000?",
+    "gold_query": "SELECT T1.Aircraft ,  T1.Description FROM aircraft AS T1 JOIN airport_aircraft AS T2 ON T1.Aircraft_ID  =  T2.Aircraft_ID JOIN airport AS T3 ON T2.Airport_ID  =  T3.Airport_ID WHERE T3.Total_Passengers  >  10000000",
+    "pred_query": "\nSELECT a.airport_name,\n       a2.aircraft,\n       a2.description\nFROM airport a\nJOIN airport_aircraft aa ON a.airport_id = aa.airport_id\nJOIN aircraft a2 ON aa.aircraft_id = a2.aircraft_id\nWHERE a.total_passengers > 10000000;",
+    "error_type": "Mismatch",
+    "gold_result": "            Aircraft                   Description\nBell 206B3 JetRanger Turboshaft utility helicopter\n       Robinson R-22      Light utility helicopter",
+    "pred_result": "   Airport_Name             Aircraft                   Description\nLondon Heathrow Bell 206B3 JetRanger Turboshaft utility helicopter\n London Gatwick        Robinson R-22      Light utility helicopter"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the average total number of passengers of airports that are associated with aircraft \"Robinson R-22\"?",
+    "gold_query": "SELECT avg(T3.Total_Passengers) FROM aircraft AS T1 JOIN airport_aircraft AS T2 ON T1.Aircraft_ID  =  T2.Aircraft_ID JOIN airport AS T3 ON T2.Airport_ID  =  T3.Airport_ID WHERE T1.Aircraft  =  \"Robinson R-22\"",
+    "pred_query": "\nSELECT AVG(a.Total_Passengers)\nFROM airport_aircraft a\nJOIN aircraft c ON a.Aircraft_ID = c.Aircraft_ID\nWHERE c.Aircraft = 'Robinson R-22';",
+    "error_type": "ExecutionError",
+    "gold_result": "   avg(T3.Total_Passengers)\n0                34205887.0",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the average total number of passengers for all airports that the aircraft \"Robinson R-22\" visits?",
+    "gold_query": "SELECT avg(T3.Total_Passengers) FROM aircraft AS T1 JOIN airport_aircraft AS T2 ON T1.Aircraft_ID  =  T2.Aircraft_ID JOIN airport AS T3 ON T2.Airport_ID  =  T3.Airport_ID WHERE T1.Aircraft  =  \"Robinson R-22\"",
+    "pred_query": "\nSELECT AVG(a.total_passengers) AS average_total_passengers\nFROM aircraft a\nJOIN airport_aircraft aa ON a.aircraft_id = aa.aircraft_id\nJOIN airport ap ON aa.airport_id = ap.airport_id\nWHERE a.aircraft = 'Robinson R-22';",
+    "error_type": "ExecutionError",
+    "gold_result": "   avg(T3.Total_Passengers)\n0                34205887.0",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "List the name of the aircraft that has been named winning aircraft the most number of times.",
+    "gold_query": "SELECT T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft ORDER BY COUNT(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT a.aircraft,\n       COUNT(m.winning_aircraft) AS number_of_wins\nFROM match m\nJOIN aircraft a ON m.winning_aircraft = a.aircraft_id\nGROUP BY a.aircraft\nORDER BY number_of_wins DESC\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": " Aircraft\nMil Mi-26",
+    "pred_result": "     Aircraft  number_of_wins\nRobinson R-22               2"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What is the name of the aircraft that has won an award the most?",
+    "gold_query": "SELECT T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft ORDER BY COUNT(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT \"a\".*\nFROM \"aircraft\" \"a\"\nJOIN\n  (SELECT \"Winning_Aircraft\",\n          COUNT(*) AS COUNT\n   FROM \"match\"\n   GROUP BY \"Winning_Aircraft\"\n   ORDER BY COUNT DESC\n   LIMIT 1) \"m\" ON \"a\".\"Aircraft_ID\" = \"m\".\"Winning_Aircraft\"\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": " Aircraft\nMil Mi-26",
+    "pred_result": " Aircraft_ID  Aircraft           Description       Max_Gross_Weight    Total_disk_area       Max_disk_Loading\n           4 Mil Mi-26 Heavy-lift helicopter 123,500 lb (56,000 kg) 8,495 ft² (789 m²) 14.5 lb/ft² (71 kg/m²)"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "List the names of aircrafts and the number of times it won matches.",
+    "gold_query": "SELECT T1.Aircraft ,  COUNT(*) FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft",
+    "pred_query": "\nSELECT a.aircraft,\n       COUNT(m.winning_aircraft) AS number_of_wins\nFROM aircraft a\nJOIN match m ON a.aircraft_id = m.winning_aircraft\nGROUP BY a.aircraft\nORDER BY number_of_wins DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "             Aircraft  COUNT(*)\n        Robinson R-22         2\n Bell 206B3 JetRanger         1\n       CH-47D Chinook         1\n            Mil Mi-26         2\nCH-53E Super Stallion         1",
+    "pred_result": "             Aircraft  number_of_wins\n        Robinson R-22               2\n            Mil Mi-26               2\nCH-53E Super Stallion               1\n       CH-47D Chinook               1\n Bell 206B3 JetRanger               1"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "For each aircraft that has won an award, what is its name and how many time has it won?",
+    "gold_query": "SELECT T1.Aircraft ,  COUNT(*) FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft",
+    "pred_query": "\nSELECT a.\"Aircraft\",\n       COUNT(m.Winning_Aircraft) AS number_of_wins\nFROM match m\nJOIN aircraft a ON m.Winning_Aircraft = a.Aircraft_ID\nGROUP BY a.\"Aircraft\"\nORDER BY number_of_wins DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "             Aircraft  COUNT(*)\n        Robinson R-22         2\n Bell 206B3 JetRanger         1\n       CH-47D Chinook         1\n            Mil Mi-26         2\nCH-53E Super Stallion         1",
+    "pred_result": "             Aircraft  number_of_wins\n        Robinson R-22               2\n            Mil Mi-26               2\nCH-53E Super Stallion               1\n       CH-47D Chinook               1\n Bell 206B3 JetRanger               1"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the names of all aircrafts that have won a match at least twice?",
+    "gold_query": "SELECT T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft HAVING COUNT(*)  >=  2",
+    "pred_query": "\nSELECT DISTINCT m.Winning_Aircraft\nFROM match m\nGROUP BY m.Winning_Aircraft\nHAVING COUNT(m.Winning_Aircraft) >= 2;",
+    "error_type": "Mismatch",
+    "gold_result": "     Aircraft\nRobinson R-22\n    Mil Mi-26",
+    "pred_result": "Winning_Aircraft\n               1\n               4"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "find the name of pilots who did not win the matches held in the country of Australia.",
+    "gold_query": "SELECT name FROM pilot WHERE pilot_id NOT IN (SELECT Winning_Pilot  FROM MATCH WHERE country  =  'Australia')",
+    "pred_query": "\nSELECT p.name\nFROM pilot p\nJOIN match m ON p.pilot_id = m.winning_pilot\nWHERE m.country != 'Australia'",
+    "error_type": "Mismatch",
+    "gold_result": "                     Name\n    Prof. Zackery Collins\n     Katheryn Gorczany IV\nMr. Cristian Halvorson II\n         Ellen Ledner III\n          Elisha Hickle V\n       Dr. Jade Bradtke V\n          Winnifred Boyle\n           Della Lindgren\n           Maxwell Graham\n            Blaise Muller\n           Baylee Steuber",
+    "pred_result": "                 Name\nProf. Zackery Collins\n      Elisha Hickle V\n        Ayana Spencer\n       Della Lindgren\n Katheryn Gorczany IV\n      Elisha Hickle V"
+  },
+  {
+    "db_id": "aircraft",
+    "question": "What are the names of the pilots that have not won any matches in Australia?",
+    "gold_query": "SELECT name FROM pilot WHERE pilot_id NOT IN (SELECT Winning_Pilot  FROM MATCH WHERE country  =  'Australia')",
+    "pred_query": "\nSELECT p.name\nFROM pilot p\nLEFT JOIN match m ON p.pilot_id = m.winning_pilot\nAND m.country = 'Australia'\nWHERE m.winning_pilot IS NULL\nORDER BY p.name NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "                     Name\n    Prof. Zackery Collins\n     Katheryn Gorczany IV\nMr. Cristian Halvorson II\n         Ellen Ledner III\n          Elisha Hickle V\n       Dr. Jade Bradtke V\n          Winnifred Boyle\n           Della Lindgren\n           Maxwell Graham\n            Blaise Muller\n           Baylee Steuber",
+    "pred_result": "                     Name\n           Baylee Steuber\n            Blaise Muller\n           Della Lindgren\n       Dr. Jade Bradtke V\n          Elisha Hickle V\n         Ellen Ledner III\n     Katheryn Gorczany IV\n           Maxwell Graham\nMr. Cristian Halvorson II\n    Prof. Zackery Collins\n          Winnifred Boyle"
+  },
+  {
+    "db_id": "architecture",
+    "question": "How many architects are female?",
+    "gold_query": "SELECT count(*) FROM architect WHERE gender  =  'female'",
+    "pred_query": "\nSELECT COUNT(*)\nFROM \"architect\" a\nWHERE a.gender = 'female';",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        1",
+    "pred_result": " COUNT(*)\n        1"
+  },
+  {
+    "db_id": "architecture",
+    "question": "List the name, nationality and id of all male architects ordered by their names lexicographically.",
+    "gold_query": "SELECT name ,  nationality ,  id FROM architect WHERE gender  =  'male' ORDER BY name",
+    "pred_query": "\nSELECT a.\"name\",\n       a.\"nationality\",\n       a.\"id\"\nFROM \"architect\" a\nWHERE a.\"gender\" = 'M'\nORDER BY a.\"name\" ASC;",
+    "error_type": "Mismatch",
+    "gold_result": "              name      nationality id\n       Frank Gehry         Canadian  2\nFrank Lloyd Wright         American  1\n      Le Corbusier    Swiss, French  5\n Mies Van Der Rohe German, American  4",
+    "pred_result": "Empty DataFrame\nColumns: [name, nationality, id]\nIndex: []"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What is the maximum length in meters for the bridges and what are the architects' names?",
+    "gold_query": "SELECT max(T1.length_meters) ,  T2.name FROM bridge AS T1 JOIN architect AS T2 ON T1.architect_id  =  T2.id",
+    "pred_query": "\nSELECT MAX(b.length_meters) AS longest_bridge_length,\n       a.name AS longest_bridge_architect\nFROM bridge b\nJOIN architect a ON b.architect_id = a.id;",
+    "error_type": "Mismatch",
+    "gold_result": " max(T1.length_meters)               name\n                 121.0 Frank Lloyd Wright",
+    "pred_result": " longest_bridge_length longest_bridge_architect\n                 121.0       Frank Lloyd Wright"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What is the average length in feet of the bridges?",
+    "gold_query": "SELECT avg(length_feet) FROM bridge",
+    "pred_query": "\nSELECT AVG(b.length_feet) AS average_length_feet\nFROM bridge b;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(length_feet)\n           244.64",
+    "pred_result": " average_length_feet\n              244.64"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What are the names and year of construction for the mills of 'Grondzeiler' type?",
+    "gold_query": "SELECT name ,  built_year FROM mill WHERE TYPE  =  'Grondzeiler'",
+    "pred_query": "\nSELECT m.name,\n       m.built_year\nFROM mill m\nWHERE m.type ilike '%Grondzeiler%';",
+    "error_type": "ExecutionError",
+    "gold_result": "                name  built_year\n0     Le Vieux Molen        1840\n1    Moulin Bertrand        1890\n2    Moulin de Fexhe        1843\n3  Moulin du Château        1856\n4  Moulin de Pousset        1819",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What are the names of the mills which are not located in 'Donceel'?",
+    "gold_query": "SELECT name FROM mill WHERE LOCATION != 'Donceel'",
+    "pred_query": "\nSELECT m.name\nFROM mill m\nWHERE m.location not ilike '%Donceel%'",
+    "error_type": "ExecutionError",
+    "gold_result": "                name\n0     Le Vieux Molen\n1    Moulin de Fexhe\n2  Moulin de Momalle\n3  Moulin du Château\n4  Moulin de Pousset",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What are the ids, names and genders of the architects who built two bridges or one mill?",
+    "gold_query": "SELECT T1.id ,  T1.name ,  T1.gender FROM architect AS T1 JOIN bridge AS T2 ON T1.id  =  T2.architect_id GROUP BY T1.id HAVING count(*)  =  2 UNION SELECT T1.id ,  T1.name ,  T1.gender FROM architect AS T1 JOIN mill AS T2 ON T1.id  =  T2.architect_id GROUP BY T1.id HAVING count(*)  =  1",
+    "pred_query": "\nSELECT a.\"id\",\n       a.\"name\",\n       a.\"gender\"\nFROM \"architect\" a\nJOIN\n  (SELECT b.architect_id\n   FROM bridge b\n   GROUP BY b.architect_id\n   HAVING COUNT(b.id) >= 2) AS bridges ON a.id = bridges.architect_id\nOR\n  (SELECT m.architect_id\n   FROM mill m\n   GROUP BY m.architect_id\n   HAVING COUNT(m.id) >= 1) AS mills ON a.id = mills.architect_id;",
+    "error_type": "ExecutionError",
+    "gold_result": "  id               name  gender\n0  2        Frank Gehry    male\n1  3         Zaha Hadid  female\n2  4  Mies Van Der Rohe    male",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What is the location of the bridge named 'Kolob Arch' or 'Rainbow Bridge'?",
+    "gold_query": "SELECT LOCATION FROM bridge WHERE name  =  'Kolob Arch' OR name  =  'Rainbow Bridge'",
+    "pred_query": "\nSELECT b.location\nFROM bridge b\nWHERE b.name ilike '%Kolob Arch%'\n  OR b.name ilike '%Rainbow Bridge%';",
+    "error_type": "ExecutionError",
+    "gold_result": "                                            location\n0                    Zion National Park , Utah , USA\n1  Glen Canyon National Recreation Area , Utah , USA",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "architecture",
+    "question": "Which of the mill names contains the french word 'Moulin'?",
+    "gold_query": "SELECT name FROM mill WHERE name LIKE '%Moulin%'",
+    "pred_query": "\nSELECT m.name\nFROM mill m\nWHERE m.name ilike '%Moulin%';",
+    "error_type": "ExecutionError",
+    "gold_result": "                name\n0    Moulin Bertrand\n1    Moulin de Fexhe\n2  Moulin de Momalle\n3  Moulin du Château\n4  Moulin de Pousset",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "architecture",
+    "question": "What is the most common mill type, and how many are there?",
+    "gold_query": "SELECT TYPE ,  count(*) FROM mill GROUP BY TYPE ORDER BY count(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT m.type,\n       COUNT(m.type) AS COUNT\nFROM mill m\nGROUP BY m.type\nORDER BY COUNT DESC\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": "       type  count(*)\nGrondzeiler         5",
+    "pred_result": "       type  COUNT\nGrondzeiler      5"
+  },
+  {
+    "db_id": "architecture",
+    "question": "How many architects haven't built a mill before year 1850?",
+    "gold_query": "SELECT count(*) FROM architect WHERE id NOT IN ( SELECT architect_id FROM mill WHERE built_year  <  1850 );",
+    "pred_query": "\nSELECT COUNT(DISTINCT a.\"id\")\nFROM \"architect\" a\nLEFT JOIN \"mill\" m ON a.\"id\" = m.architect_id\nWHERE m.built_year < 1850;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n        2",
+    "pred_result": " COUNT(DISTINCT a.\"id\")\n                      3"
+  },
+  {
+    "db_id": "architecture",
+    "question": "show the name of all bridges that was designed by american archtect, and sort the result by the bridge feet length.",
+    "gold_query": "SELECT t1.name FROM bridge AS t1 JOIN architect AS t2 ON t1.architect_id  =  t2.id WHERE t2.nationality  =  'American' ORDER BY t1.length_feet",
+    "pred_query": "\nSELECT b.name,\n       b.length_feet\nFROM bridge b\nJOIN architect a ON b.architect_id = a.id\nWHERE a.nationality = 'American'\nORDER BY b.length_feet DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "                        name\n Hazarchishma Natural Bridge\n              Jiangzhou Arch\n              Shipton's Arch\nXian Ren Qiao (Fairy Bridge)",
+    "pred_result": "                        name  length_feet\nXian Ren Qiao (Fairy Bridge)        400.0\n              Jiangzhou Arch        212.0\n              Shipton's Arch        212.0\n Hazarchishma Natural Bridge        210.6"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show all the locations where no cinema has capacity over 800.",
+    "gold_query": "SELECT LOCATION FROM cinema EXCEPT SELECT LOCATION FROM cinema WHERE capacity  >  800",
+    "pred_query": "\nSELECT c.location\nFROM cinema c\nWHERE c.capacity > 800;",
+    "error_type": "Mismatch",
+    "gold_result": "        Location\n     County Cork\n   County Dublin\n    County Laois\n    County Louth\nCounty Tipperary",
+    "pred_result": "      Location\nCounty Wicklow\n  County Clare"
+  },
+  {
+    "db_id": "cinema",
+    "question": "How many cinema do we have?",
+    "gold_query": "SELECT count(*) FROM cinema",
+    "pred_query": "\nSELECT COUNT(c.Cinema_ID)\nFROM cinema c;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n       10",
+    "pred_result": " COUNT(c.Cinema_ID)\n                 10"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Count the number of cinemas.",
+    "gold_query": "SELECT count(*) FROM cinema",
+    "pred_query": "\nSELECT COUNT(DISTINCT c.cinema_id) AS number_of_cinemas\nFROM cinema c;",
+    "error_type": "Mismatch",
+    "gold_result": " count(*)\n       10",
+    "pred_result": " number_of_cinemas\n                10"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show the average, minimum, and maximum capacity for all the cinemas opened in year 2011 or later.",
+    "gold_query": "SELECT avg(capacity) ,  min(capacity) ,  max(capacity) FROM cinema WHERE openning_year  >=  2011",
+    "pred_query": "\nSELECT AVG(c.capacity),\n       MIN(c.capacity),\n       MAX(c.capacity)\nFROM cinema c\nWHERE c.openning_year >= 2011;",
+    "error_type": "Mismatch",
+    "gold_result": " avg(capacity)  min(capacity)  max(capacity)\n    399.666667            203            908",
+    "pred_result": " AVG(c.capacity)  MIN(c.capacity)  MAX(c.capacity)\n      399.666667              203              908"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show each location and the number of cinemas there.",
+    "gold_query": "SELECT LOCATION ,  count(*) FROM cinema GROUP BY LOCATION",
+    "pred_query": "\nSELECT c.location,\n       COUNT(c.cinema_id) AS number_of_cinemas\nFROM cinema c\nGROUP BY c.location\nORDER BY number_of_cinemas DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "        Location  count(*)\n    County Clare         3\n     County Cork         1\n   County Dublin         1\n    County Laois         1\n    County Louth         1\nCounty Tipperary         2\n  County Wicklow         1",
+    "pred_result": "        Location  number_of_cinemas\n    County Clare                  3\nCounty Tipperary                  2\n  County Wicklow                  1\n    County Louth                  1\n    County Laois                  1\n   County Dublin                  1\n     County Cork                  1"
+  },
+  {
+    "db_id": "cinema",
+    "question": "What is the location with the most cinemas opened in year 2010 or later?",
+    "gold_query": "SELECT LOCATION FROM cinema WHERE openning_year  >=  2010 GROUP BY LOCATION ORDER BY count(*) DESC LIMIT 1",
+    "pred_query": "\nSELECT c.location,\n       COUNT(c.cinema_id) AS number_of_cinemas\nFROM cinema c\nWHERE c.openning_year >= 2010\nGROUP BY c.location\nORDER BY number_of_cinemas DESC NULLS LAST\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": "        Location\nCounty Tipperary",
+    "pred_result": "        Location  number_of_cinemas\nCounty Tipperary                  2"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show all the locations with at least two cinemas with capacity above 300.",
+    "gold_query": "SELECT LOCATION FROM cinema WHERE capacity  >  300 GROUP BY LOCATION HAVING count(*)  >=  2",
+    "pred_query": "\nSELECT c.location\nFROM cinema c\nGROUP BY c.location\nHAVING COUNT(c.cinema_id) >= 2\nAND SUM(c.capacity) > 300;",
+    "error_type": "Mismatch",
+    "gold_result": "    Location\nCounty Clare",
+    "pred_result": "        Location\n    County Clare\nCounty Tipperary"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Which locations have 2 or more cinemas with capacity over 300?",
+    "gold_query": "SELECT LOCATION FROM cinema WHERE capacity  >  300 GROUP BY LOCATION HAVING count(*)  >=  2",
+    "pred_query": "\nSELECT c.location\nFROM cinema c\nGROUP BY c.location\nHAVING COUNT(c.cinema_id) >= 2\nAND SUM(c.capacity) > 300;",
+    "error_type": "Mismatch",
+    "gold_result": "    Location\nCounty Clare",
+    "pred_result": "        Location\n    County Clare\nCounty Tipperary"
+  },
+  {
+    "db_id": "cinema",
+    "question": "List all directors along with the number of films directed by each director.",
+    "gold_query": "SELECT directed_by ,  count(*) FROM film GROUP BY directed_by",
+    "pred_query": "\nSELECT f.directed_by,\n       COUNT(f.film_id) AS number_of_films\nFROM film f\nGROUP BY f.directed_by\nORDER BY number_of_films DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "           Directed_by  count(*)\n        Bill Schreiner         4\nJesus Salvador Treviño         1",
+    "pred_result": "           Directed_by  number_of_films\n        Bill Schreiner                4\nJesus Salvador Treviño                1"
+  },
+  {
+    "db_id": "cinema",
+    "question": "What is total number of show times per dat for each cinema?",
+    "gold_query": "SELECT T2.name ,  sum(T1.show_times_per_day) FROM schedule AS T1 JOIN cinema AS T2 ON T1.cinema_id  =  T2.cinema_id GROUP BY T1.cinema_id",
+    "pred_query": "\nSELECT s.Cinema_ID,\n       SUM(s.Show_times_per_day) AS total_show_times\nFROM schedule s\nGROUP BY s.Cinema_ID\nORDER BY total_show_times DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "        Name  sum(T1.show_times_per_day)\n     Codling                          10\n Carrowleagh                           5\n   Gortahile                           4\nMount Callan                           5\n       Oriel                           5",
+    "pred_result": " Cinema_ID  total_show_times\n         1                10\n         2                 5\n         9                 5\n        10                 5\n         6                 4"
+  },
+  {
+    "db_id": "cinema",
+    "question": "What are the title and maximum price of each film?",
+    "gold_query": "SELECT T2.title ,  max(T1.price) FROM schedule AS T1 JOIN film AS T2 ON T1.film_id  =  T2.film_id GROUP BY T1.film_id",
+    "pred_query": "\nSELECT f.title,\n       MAX(s.price) AS max_price\nFROM film f\nJOIN schedule s ON f.film_id = s.film_id\nGROUP BY f.title\nORDER BY max_price DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "                           Title  max(T1.price)\n The Case of the Mystery Weekend          15.99\n     The Case of the Smart Dummy          12.99\n        The Case: Off the Record           8.99\nThe Case of the Bermuda Triangle           9.99\n    The Case of the Piggy Banker          12.99",
+    "pred_result": "                           Title  max_price\n The Case of the Mystery Weekend      15.99\n     The Case of the Smart Dummy      12.99\n    The Case of the Piggy Banker      12.99\nThe Case of the Bermuda Triangle       9.99\n        The Case: Off the Record       8.99"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Give me the title and highest price for each film.",
+    "gold_query": "SELECT T2.title ,  max(T1.price) FROM schedule AS T1 JOIN film AS T2 ON T1.film_id  =  T2.film_id GROUP BY T1.film_id",
+    "pred_query": "\nSELECT f.title,\n       MAX(s.price) AS max_price\nFROM film f\nJOIN schedule s ON f.film_id = s.film_id\nGROUP BY f.title\nORDER BY max_price DESC NULLS LAST;",
+    "error_type": "Mismatch",
+    "gold_result": "                           Title  max(T1.price)\n The Case of the Mystery Weekend          15.99\n     The Case of the Smart Dummy          12.99\n        The Case: Off the Record           8.99\nThe Case of the Bermuda Triangle           9.99\n    The Case of the Piggy Banker          12.99",
+    "pred_result": "                           Title  max_price\n The Case of the Mystery Weekend      15.99\n     The Case of the Smart Dummy      12.99\n    The Case of the Piggy Banker      12.99\nThe Case of the Bermuda Triangle       9.99\n        The Case: Off the Record       8.99"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show cinema name, film title, date, and price for each record in schedule.",
+    "gold_query": "SELECT T3.name ,  T2.title ,  T1.date ,  T1.price FROM schedule AS T1 JOIN film AS T2 ON T1.film_id  =  T2.film_id JOIN cinema AS T3 ON T1.cinema_id  =  T3.cinema_id",
+    "pred_query": "\nSELECT c.name AS cinema_name,\n       f.title AS film_title,\n       s.date AS show_date,\n       s.price AS ticket_price\nFROM schedule s\nJOIN cinema c ON s.cinema_id = c.cinema_id\nJOIN film f ON s.film_id = f.film_id;",
+    "error_type": "Mismatch",
+    "gold_result": "        Name                            Title    Date  Price\n     Codling  The Case of the Mystery Weekend  21 May  12.99\n     Codling      The Case of the Smart Dummy  21 May  12.99\n     Codling         The Case: Off the Record  21 Jun   8.99\n Carrowleagh  The Case of the Mystery Weekend 11 July   9.99\n   Gortahile     The Case of the Piggy Banker   2 Aug  12.99\nMount Callan The Case of the Bermuda Triangle  20 May   9.99\n       Oriel  The Case of the Mystery Weekend  19 May  15.99",
+    "pred_result": " cinema_name                       film_title show_date  ticket_price\n     Codling  The Case of the Mystery Weekend    21 May         12.99\n     Codling      The Case of the Smart Dummy    21 May         12.99\n     Codling         The Case: Off the Record    21 Jun          8.99\n Carrowleagh  The Case of the Mystery Weekend   11 July          9.99\n   Gortahile     The Case of the Piggy Banker     2 Aug         12.99\nMount Callan The Case of the Bermuda Triangle    20 May          9.99\n       Oriel  The Case of the Mystery Weekend    19 May         15.99"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Show director with the largest number of show times in total.",
+    "gold_query": "SELECT T2.directed_by FROM schedule AS T1 JOIN film AS T2 ON T1.film_id  =  T2.film_id GROUP BY T2.directed_by ORDER BY sum(T1.show_times_per_day) DESC LIMIT 1",
+    "pred_query": "\nSELECT f.Directed_by,\n       SUM(s.Show_times_per_day) AS total_show_times\nFROM film f\nJOIN schedule s ON f.Film_ID = s.Film_ID\nGROUP BY f.Directed_by\nORDER BY total_show_times DESC NULLS LAST\nLIMIT 1;",
+    "error_type": "Mismatch",
+    "gold_result": "   Directed_by\nBill Schreiner",
+    "pred_result": "   Directed_by  total_show_times\nBill Schreiner                24"
+  },
+  {
+    "db_id": "cinema",
+    "question": "How many films have the word 'Dummy' in their titles?",
+    "gold_query": "SELECT count(*) FROM film WHERE title LIKE \"%Dummy%\"",
+    "pred_query": "\nSELECT COUNT(f.Film_ID)\nFROM film f\nWHERE f.Title ilike '%Dummy%';",
+    "error_type": "ExecutionError",
+    "gold_result": "   count(*)\n0         1",
+    "pred_result": "None"
+  },
+  {
+    "db_id": "cinema",
+    "question": "Count the number of films whose title contains the word 'Dummy'.",
+    "gold_query": "SELECT count(*) FROM film WHERE title LIKE \"%Dummy%\"",
+    "pred_query": "\nSELECT COUNT(f.Film_ID)\nFROM \"film\" f\nWHERE f.Title ilike '%Dummy%';",
+    "error_type": "ExecutionError",
+    "gold_result": "   count(*)\n0         1",
+    "pred_result": "None"
+  }
+]
