@@ -1,0 +1,238 @@
+{
+  "model_name": "lora-finetuned_deepseek-1.5b",
+  "final_accuracy": 0.358974358974359,
+  "per_dataset_accuracy": {
+    "department_management": 0.75,
+    "farm": 0.5,
+    "aircraft": 0.16666666666666666,
+    "architecture": 0.0,
+    "cinema": 0.5
+  },
+  "bad_cases": [
+    {
+      "db_id": "department_management",
+      "question": "Which department has more than 1 head at a time? List the id, name and the number of heads.",
+      "gold_query": "SELECT T1.department_id ,  T1.name ,  count(*) FROM management AS T2 JOIN department AS T1 ON T1.department_id  =  T2.department_id GROUP BY T1.department_id HAVING count(*)  >  1",
+      "pred_query": "\nSELECT D.department_ID,\n       D.Name,\n       COUNT(*)\nFROM department AS D\nJOIN manages AS M\nWHERE D.department_ID NOT EXISTS",
+      "error_type": "ExecutionError",
+      "gold_result": "   Department_ID      Name  count(*)\n0              2  Treasury         2",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "farm",
+      "question": "Give the years and official names of the cities of each competition.",
+      "gold_query": "SELECT T2.Year ,  T1.Official_Name FROM city AS T1 JOIN farm_competition AS T2 ON T1.City_ID  =  T2.Host_city_ID",
+      "pred_query": "\nSELECT T1.year,\n       T1official_name\nFROM city AS T1\nJOIN farm_competition AS T2 ON T1.city_id = T2.host_city_id\nJOIN competition_record AS T3 ON T2.competition_id = T3.competition_id\nWHERE T3.rank = 1",
+      "error_type": "ExecutionError",
+      "gold_result": "   Year            Official_Name\n0  2013  Grand Falls/Grand-Sault\n1  2006            Perth-Andover\n2  2005             Plaster Rock\n3  2004                 Drummond\n4  2003                Aroostook\n5  2002                Aroostook",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "farm",
+      "question": "Please show the different statuses of cities and the average population of cities with each status.",
+      "gold_query": "SELECT Status ,  avg(Population) FROM city GROUP BY Status",
+      "pred_query": "\nSELECT avg(Population) AS averagePopulation\nFROM city\nGROUP BY Status",
+      "error_type": "Mismatch",
+      "gold_result": " Status  avg(Population)\n   Town          5706.00\nVillage          1009.75",
+      "pred_result": " averagePopulation\n           5706.00\n           1009.75"
+    },
+    {
+      "db_id": "farm",
+      "question": "How many different statuses do cities have?",
+      "gold_query": "SELECT count(DISTINCT Status) FROM city",
+      "pred_query": "\nSELECT Count(DISTINCT Status)\nFROM city",
+      "error_type": "Mismatch",
+      "gold_result": " count(DISTINCT Status)\n                      2",
+      "pred_result": " Count(DISTINCT Status)\n                      2"
+    },
+    {
+      "db_id": "farm",
+      "question": "What are the statuses and average populations of each city?",
+      "gold_query": "SELECT Status ,  avg(Population) FROM city GROUP BY Status",
+      "pred_query": "\nSELECT Status,\n       AVG(Population)\nFROM city",
+      "error_type": "Mismatch",
+      "gold_result": " Status  avg(Population)\n   Town          5706.00\nVillage          1009.75",
+      "pred_result": "Status  AVG(Population)\n  Town           1949.0"
+    },
+    {
+      "db_id": "farm",
+      "question": "What are the themes of farm competitions sorted by year in ascending order?",
+      "gold_query": "SELECT Theme FROM farm_competition ORDER BY YEAR ASC",
+      "pred_query": "\nSELECT Theme,\n       Year\nFROM farm_competition\nORDER BY Year ASC",
+      "error_type": "Mismatch",
+      "gold_result": "              Theme\n             Aliens\n           MTV Cube\n    Valentine's Day\n       MTV Asia Aid\n        Codehunters\nCarnival M is back!",
+      "pred_result": "              Theme  Year\n             Aliens  2002\n           MTV Cube  2003\n    Valentine's Day  2004\n       MTV Asia Aid  2005\n        Codehunters  2006\nCarnival M is back!  2013"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What is all the information on the airport with the largest number of international passengers?",
+      "gold_query": "SELECT * FROM airport ORDER BY International_Passengers DESC LIMIT 1",
+      "pred_query": "\nSELECT *\nFROM airport\nWHERE INTMAX(International_Passengers) > 100000",
+      "error_type": "ExecutionError",
+      "gold_result": "   Airport_ID     Airport_Name  Total_Passengers %_Change_2007  \\\n0           1  London Heathrow        67054745.0          1.5%   \n\n   International_Passengers  Domestic_Passengers  Transit_Passengers  \\\n0                61344438.0            5562516.0            147791.0   \n\n   Aircraft_Movements  Freight_Metric_Tonnes  \n0            478693.0              1397054.0  ",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What is the location and name of the winning aircraft?",
+      "gold_query": "SELECT T2.Location ,  T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft",
+      "pred_query": "\nSELECT Description\nFROM aircraft\nWHERE Winning_Aircraft IS NOT NULL",
+      "error_type": "ExecutionError",
+      "gold_result": "                          Location               Aircraft\n0          Mina' Zayid , Abu Dhabi          Robinson R-22\n1               Swan River , Perth          Robinson R-22\n2  Flamengo Beach , Rio de Janeiro   Bell 206B3 JetRanger\n3                Windsor , Ontario              Mil Mi-26\n4                    New York City         CH-47D Chinook\n5             EuroSpeedway Lausitz              Mil Mi-26\n6          River Danube , Budapest  CH-53E Super Stallion",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "List the name of the aircraft that has been named winning aircraft the most number of times.",
+      "gold_query": "SELECT T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft GROUP BY T2.Winning_Aircraft ORDER BY COUNT(*) DESC LIMIT 1",
+      "pred_query": "\nSELECT Aircraft\nFROM aircraft\nGROUP BY Aircraft\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "error_type": "Mismatch",
+      "gold_result": " Aircraft\nMil Mi-26",
+      "pred_result": "     Aircraft\nRobinson R-22"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "find the name of pilots who did not win the matches held in the country of Australia.",
+      "gold_query": "SELECT name FROM pilot WHERE pilot_id NOT IN (SELECT Winning_Pilot  FROM MATCH WHERE country  =  'Australia')",
+      "pred_query": "\nSELECT Name\nFROM pilot\nWHERE Winning_Pilot NOT IN (\n  SELECT Winning_Pilot\n  FROM match WHERE Country LIKE '% Australia'",
+      "error_type": "ExecutionError",
+      "gold_result": "                         Name\n0       Prof. Zackery Collins\n1        Katheryn Gorczany IV\n2   Mr. Cristian Halvorson II\n3            Ellen Ledner III\n4             Elisha Hickle V\n5          Dr. Jade Bradtke V\n6             Winnifred Boyle\n7              Della Lindgren\n8              Maxwell Graham\n9               Blaise Muller\n10             Baylee Steuber",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What are the names of all aicrafts that have never won any match?",
+      "gold_query": "SELECT Aircraft FROM aircraft WHERE Aircraft_ID NOT IN (SELECT Winning_Aircraft FROM MATCH)",
+      "pred_query": "\nSELECT Aircraft\nFROM aircraft\nWHERE Aircraft_ID NOT IN (\n  SELECT Winning_Aircraft\n  FROM match WHERE Date LIKE '% won%'",
+      "error_type": "ExecutionError",
+      "gold_result": "Empty DataFrame\nColumns: [Aircraft]\nIndex: []",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What is the name and age of the pilot younger than 30 who has won the most number of times?",
+      "gold_query": "SELECT t1.name ,  t1.age FROM pilot AS t1 JOIN MATCH AS t2 ON t1.pilot_id  =  t2.winning_pilot WHERE t1.age  <  30 GROUP BY t2.winning_pilot ORDER BY count(*) DESC LIMIT 1",
+      "pred_query": "\nSELECT Name,\n       Age\nFROM pilot\nWHERE Age < 30\nGROUP BY Name\nORDER BY Count(*) DESC\nLIMIT 1",
+      "error_type": "Mismatch",
+      "gold_result": "         Name  Age\nAyana Spencer   25",
+      "pred_result": "                 Name  Age\nProf. Zackery Collins   23"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What are the total number of Domestic Passengers of airports that contain the word \"London\".",
+      "gold_query": "SELECT sum(Domestic_Passengers) FROM airport WHERE Airport_Name LIKE \"%London%\"",
+      "pred_query": "\nSELECT Total_Passengers\nFROM airport\nWHERE airport_name LIKE '%London%'",
+      "error_type": "Mismatch",
+      "gold_result": " sum(Domestic_Passengers)\n               12957585.0",
+      "pred_result": " Total_Passengers\n       67054745.0\n       34205887.0\n       22360364.0\n       10180734.0"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What are the descriptions for the aircrafts?",
+      "gold_query": "SELECT Description FROM aircraft",
+      "pred_query": "\nSELECT Description\nFROM aircraft\nWHERE Airport_ID NOT IN\n    (SELECT Winning_Aircraft\n     FROM match\n     WHERE Round = 1\n       AND Winning_Pilot != '')",
+      "error_type": "ExecutionError",
+      "gold_result": "                     Description\n0       Light utility helicopter\n1  Turboshaft utility helicopter\n2        Tandem rotor helicopter\n3          Heavy-lift helicopter\n4          Heavy-lift helicopter",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "What are the number of international and domestic passengers of the airport named London \"Heathrow\"?",
+      "gold_query": "SELECT International_Passengers ,  Domestic_Passengers FROM airport WHERE Airport_Name  =  \"London Heathrow\"",
+      "pred_query": "\nSELECT INT(International_Passengers),\n       INT(Domestic_Passengers)\nFROM airport\nWHERE Airport_Name LIKE '% Heathrow%'",
+      "error_type": "ExecutionError",
+      "gold_result": "   International_Passengers  Domestic_Passengers\n0                61344438.0            5562516.0",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "aircraft",
+      "question": "Please list the location and the winning aircraft name.",
+      "gold_query": "SELECT T2.Location ,  T1.Aircraft FROM aircraft AS T1 JOIN MATCH AS T2 ON T1.Aircraft_ID  =  T2.Winning_Aircraft",
+      "pred_query": "\nSELECT DISTINCT Labeled \"Location\"\nFROM `aircraft`\nWHERE \"Winning_Pilot\" NOT NULL",
+      "error_type": "ExecutionError",
+      "gold_result": "                          Location               Aircraft\n0          Mina' Zayid , Abu Dhabi          Robinson R-22\n1               Swan River , Perth          Robinson R-22\n2  Flamengo Beach , Rio de Janeiro   Bell 206B3 JetRanger\n3                Windsor , Ontario              Mil Mi-26\n4                    New York City         CH-47D Chinook\n5             EuroSpeedway Lausitz              Mil Mi-26\n6          River Danube , Budapest  CH-53E Super Stallion",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "architecture",
+      "question": "How many architects are female?",
+      "gold_query": "SELECT count(*) FROM architect WHERE gender  =  'female'",
+      "pred_query": "\nSELECT count(*)\nFROM architect\nWHERE gender = 'F'",
+      "error_type": "Mismatch",
+      "gold_result": " count(*)\n        1",
+      "pred_result": " count(*)\n        0"
+    },
+    {
+      "db_id": "architecture",
+      "question": "List the name, nationality and id of all male architects ordered by their names lexicographically.",
+      "gold_query": "SELECT name ,  nationality ,  id FROM architect WHERE gender  =  'male' ORDER BY name",
+      "pred_query": "\nSELECT name,\n       nationality,\n       id\nFROM architect\nORDER BY name ASC",
+      "error_type": "Mismatch",
+      "gold_result": "              name      nationality id\n       Frank Gehry         Canadian  2\nFrank Lloyd Wright         American  1\n      Le Corbusier    Swiss, French  5\n Mies Van Der Rohe German, American  4",
+      "pred_result": "              name      nationality id\n       Frank Gehry         Canadian  2\nFrank Lloyd Wright         American  1\n      Le Corbusier    Swiss, French  5\n Mies Van Der Rohe German, American  4\n        Zaha Hadid   Iraqi, British  3"
+    },
+    {
+      "db_id": "architecture",
+      "question": "What are the distinct names and nationalities of the architects who have ever built a mill?",
+      "gold_query": "SELECT DISTINCT T1.name ,  T1.nationality FROM architect AS T1 JOIN mill AS t2 ON T1.id  =  T2.architect_id",
+      "pred_query": "\nSELECT DISTINCT n.name,\n                n.nationality\nFROM architect AS a\nJOIN mill AS m ON a.id = m.architect_id\nGROUP BY n.name,\n         n.nationality",
+      "error_type": "ExecutionError",
+      "gold_result": "                 name       nationality\n0  Frank Lloyd Wright          American\n1         Frank Gehry          Canadian\n2          Zaha Hadid    Iraqi, British\n3   Mies Van Der Rohe  German, American",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "architecture",
+      "question": "How many architects haven't built a mill before year 1850?",
+      "gold_query": "SELECT count(*) FROM architect WHERE id NOT IN ( SELECT architect_id FROM mill WHERE built_year  <  1850 );",
+      "pred_query": "\nSELECT count(*)\nFROM architect\nWHERE architect_id NOT EXISTS \"mill\" WHERE milllocation LIKE '% doesn't build%'",
+      "error_type": "ExecutionError",
+      "gold_result": "   count(*)\n0         2",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "architecture",
+      "question": "What is the location of the bridge named 'Kolob Arch' or 'Rainbow Bridge'?",
+      "gold_query": "SELECT LOCATION FROM bridge WHERE name  =  'Kolob Arch' OR name  =  'Rainbow Bridge'",
+      "pred_query": "\nSELECT location\nFROM bridge\nWHERE architect_id LIKE '%Kolob Arch% OR '%Rainbow Bridge%",
+      "error_type": "ExecutionError",
+      "gold_result": "                                            location\n0                    Zion National Park , Utah , USA\n1  Glen Canyon National Recreation Area , Utah , USA",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "cinema",
+      "question": "In which locations are there more than one movie theater with capacity above 300?",
+      "gold_query": "SELECT LOCATION FROM cinema WHERE capacity  >  300 GROUP BY LOCATION HAVING count(*)  >  1",
+      "pred_query": "\nSELECT DISTINCT L LOCATION\nFROM cinema AS T1\nJOIN schedule AS T2 ON T1.Cinema_ID = T2.Cinema_ID\nJOIN film AS T3 ON T2.Film_ID = T3.Film_ID\nWHERE T3.Rank_in_series = 1000\nORDER BY T1.Location</SQL>",
+      "error_type": "ExecutionError",
+      "gold_result": "       Location\n0  County Clare",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "cinema",
+      "question": "Show cinema name, film title, date, and price for each record in schedule.",
+      "gold_query": "SELECT T3.name ,  T2.title ,  T1.date ,  T1.price FROM schedule AS T1 JOIN film AS T2 ON T1.film_id  =  T2.film_id JOIN cinema AS T3 ON T1.cinema_id  =  T3.cinema_id",
+      "pred_query": "\nSELECT name,\n       title, date, price\nFROM cinema\nJOIN schedule ON cinema.cinema_id = schedule.Cinema_ID\nGROUP BY name\nORDER BY name",
+      "error_type": "ExecutionError",
+      "gold_result": "           Name                             Title     Date  Price\n0       Codling   The Case of the Mystery Weekend   21 May  12.99\n1       Codling       The Case of the Smart Dummy   21 May  12.99\n2       Codling          The Case: Off the Record   21 Jun   8.99\n3   Carrowleagh   The Case of the Mystery Weekend  11 July   9.99\n4     Gortahile      The Case of the Piggy Banker    2 Aug  12.99\n5  Mount Callan  The Case of the Bermuda Triangle   20 May   9.99\n6         Oriel   The Case of the Mystery Weekend   19 May  15.99",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "cinema",
+      "question": "Show all the cinema names and opening years in descending order of opening year.",
+      "gold_query": "SELECT name ,  openning_year FROM cinema ORDER BY openning_year DESC",
+      "pred_query": "\nSELECT Name,\nFROM cinema\nWHERE cinema Name DESC\nORDER BY Openning_year",
+      "error_type": "ExecutionError",
+      "gold_result": "           Name  Openning_year\n0  Dublin Array           2015\n1         Oriel           2013\n2   Carrowleagh           2012\n3  Grouse Lodge           2011\n4    Moneypoint           2011\n5  Mount Callan           2011\n6       Codling           2010\n7      Glenough           2010\n8     Gortahile           2010\n9      Glenmore           2009",
+      "pred_result": "None"
+    },
+    {
+      "db_id": "cinema",
+      "question": "What are the name and location of the cinema with the largest capacity?",
+      "gold_query": "SELECT name ,  LOCATION FROM cinema ORDER BY capacity DESC LIMIT 1",
+      "pred_query": "\nSELECT Name,\n       Location\nFROM cinema\nWHERE capacity MAX",
+      "error_type": "ExecutionError",
+      "gold_result": "      Name        Location\n0  Codling  County Wicklow",
+      "pred_result": "None"
+    }
+  ]
+}
