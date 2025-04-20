@@ -1,5 +1,5 @@
 {
-  "best_metric": 1.85271418094635,
+  "best_metric": 1.8553677797317505,
   "best_model_checkpoint": "./lora-deepseek-1.5b\\checkpoint-14",
   "epoch": 1.0,
   "eval_steps": 500,
@@ -10,17 +10,17 @@
   "log_history": [
     {
       "epoch": 0.7142857142857143,
-      "grad_norm": 0.8436602354049683,
+      "grad_norm": 0.8340643644332886,
       "learning_rate": 0.0001985714285714286,
-      "loss": 2.3005,
+      "loss": 2.3023,
       "step": 10
     },
     {
       "epoch": 1.0,
-      "eval_loss": 1.85271418094635,
-      "eval_runtime": 1.6731,
-      "eval_samples_per_second": 23.31,
-      "eval_steps_per_second": 2.988,
+      "eval_loss": 1.8553677797317505,
+      "eval_runtime": 1.6742,
+      "eval_samples_per_second": 23.295,
+      "eval_steps_per_second": 2.987,
       "step": 14
     }
   ],
